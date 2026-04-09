@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { propertiesData, Property } from "@/data/properties";
-import { Building2, Home, Hotel, Key, MapPin, Search, Heart, Bell, Filter, TrendingUp, Calendar, DollarSign, Users, FileText, MessageSquare, User, LogOut, X, Phone } from "lucide-react";
+import { Building2, Home, Hotel, Key, MapPin, Search, Heart, Bell, Filter, TrendingUp, Calendar, DollarSign, Users, FileText, MessageSquare, User, LogOut, X, Phone, Menu, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { db } from "@/lib/firebase";
@@ -19,6 +19,7 @@ export default function UserDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [activeTab, setActiveTab] = useState("properties");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
   
@@ -688,9 +689,72 @@ export default function UserDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Dashboard Navigation Tabs - Modern Design */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 rounded-2xl p-1.5 shadow-inner border border-gray-200">
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+        <div className="mb-8 relative z-40">
+          
+          {/* Mobile Hamburger Toggle */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="w-full bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-cyan-50 text-cyan-600 rounded-xl flex items-center justify-center">
+                  <Menu className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Navigation Menu</p>
+                  <p className="font-bold text-gray-900 capitalize">
+                    {activeTab === 'properties' ? 'Dashboard Home' : activeTab}
+                  </p>
+                </div>
+              </div>
+              {isMobileMenuOpen ? (
+                <ChevronUp className="w-5 h-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              )}
+            </button>
+            
+            {/* Mobile Dropdown Options */}
+            {isMobileMenuOpen && (
+              <div className="absolute left-0 right-0 mt-3 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden animate-in slide-in-from-top-2 duration-200 z-50">
+                <div className="flex flex-col p-2 space-y-1">
+                  {[
+                    { id: 'properties', label: 'Properties', icon: Building2, color: 'text-blue-600 bg-blue-50' },
+                    { id: 'owners', label: 'Owners', icon: Users, color: 'text-emerald-600 bg-emerald-50' },
+                    { id: 'payments', label: 'Payments', icon: DollarSign, color: 'text-amber-600 bg-amber-50' },
+                    { id: 'maintenance', label: 'Maintenance', icon: Calendar, color: 'text-purple-600 bg-purple-50' },
+                    { id: 'documents', label: 'Documents', icon: FileText, color: 'text-cyan-600 bg-cyan-50' },
+                    { id: 'messages', label: 'Messages', icon: MessageSquare, color: 'text-rose-600 bg-rose-50' },
+                  ].map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => {
+                          setActiveTab(tab.id);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`flex items-center gap-3 w-full p-3 rounded-xl font-medium transition-all ${
+                          isActive ? 'bg-gray-50' : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive ? tab.color : 'bg-gray-100 text-gray-400'}`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <span className={isActive ? 'text-gray-900 font-bold' : 'text-gray-600'}>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Grid Layout (Hidden on Mobile) */}
+          <div className="hidden md:block bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 rounded-2xl p-1.5 shadow-inner border border-gray-200">
+            <div className="grid grid-cols-6 gap-2">
               {[
                 { id: 'properties', label: 'Properties', icon: Building2, color: 'from-blue-500 to-indigo-500' },
                 { id: 'owners', label: 'Owners', icon: Users, color: 'from-emerald-500 to-teal-500' },

@@ -3,6 +3,20 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 
+const loadRazorpaySDK = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    if (typeof window !== 'undefined' && (window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 export function useBooking() {
   const [isBooking, setIsBooking] = useState(false);
   const { user } = useAuth();
@@ -110,16 +124,19 @@ export function useBooking() {
         prefill: {
           name: user.displayName || "Property Seeker",
           email: user.email || "",
+          contact: (user as any).phone || "9999999999",
         },
         theme: {
           color: "#0891b2", // matching cyan-600
         },
       };
 
-      const razorpayConstructor = (window as any).Razorpay;
-      if (!razorpayConstructor) {
-        throw new Error("Razorpay SDK not loaded. Please try again.");
+      const isLoaded = await loadRazorpaySDK();
+      if (!isLoaded) {
+        throw new Error("Razorpay SDK failed to load. Are you online?");
       }
+
+      const razorpayConstructor = (window as any).Razorpay;
 
       const rzp = new razorpayConstructor(options);
       rzp.on('payment.failed', function (response: any) {
